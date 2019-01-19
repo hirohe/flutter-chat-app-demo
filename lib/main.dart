@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:clippy_flutter/triangle.dart';
 
 void main() {
   runApp(ChatApp());
@@ -26,29 +27,46 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Widget _buildTextComposer(BuildContext context) {
     return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          children: <Widget>[
-            Flexible(
-                child: TextField(
-                  controller: _textController,
-                  onChanged: _handleChanged,
-                  onSubmitted: _handleSubmitted,
-                  decoration: InputDecoration.collapsed(
-                      hintText: 'Send Message'
-                  ),
-                )
-            ),
-            Container(
-              margin: new EdgeInsets.symmetric(horizontal: 4.0),
-              child: IconButton(
-                  icon: Icon(Icons.send),
-                  color: _sendIconButtonColor == null ? Theme.of(context).disabledColor : _sendIconButtonColor,
-                  onPressed: () => _handleSubmitted(_textController.text)
+      // padding: EdgeInsets.all(),
+      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+      constraints: BoxConstraints(
+        maxHeight: 100
+      ),
+      child: Row(
+        children: <Widget>[
+          Flexible(
+            child: Container(
+              //color: Theme.of(context).highlightColor,
+              padding: EdgeInsets.symmetric(
+                horizontal: 5,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Color(0xffffffff),
+                borderRadius: BorderRadius.circular(5)
+              ),
+              child: TextField(
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                controller: _textController,
+                onChanged: _handleChanged,
+                onSubmitted: _handleSubmitted,
+                decoration: InputDecoration.collapsed(
+                    hintText: 'Send Message'
+                ),
               ),
             )
-          ],
-        )
+          ),
+          Container(
+            margin: new EdgeInsets.symmetric(horizontal: 4.0),
+            child: IconButton(
+              icon: Icon(Icons.send),
+              color: _sendIconButtonColor == null ? Theme.of(context).disabledColor : _sendIconButtonColor,
+              onPressed: () => _handleSubmitted(_textController.text)
+            ),
+          )
+        ],
+      )
     );
   }
 
@@ -66,7 +84,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     var message = ChatMessage(
       text: text,
       animationController: AnimationController(
-        duration: Duration(microseconds: 700),
+        duration: Duration(milliseconds: 200),
         vsync: this,
       ),
     );
@@ -74,6 +92,10 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _messages.insert(0, message);
     });
     message.animationController.forward();
+  }
+
+  void _handleListViewOnTap() {
+    FocusScope.of(context).requestFocus(FocusNode());
   }
 
   @override
@@ -85,17 +107,23 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       body: Column(
         children: <Widget>[
           Flexible(
-            child: ListView.builder(
-              padding: EdgeInsets.all(8.0),
-              reverse: true,
-              itemBuilder: (_, index) => _messages[index],
-              itemCount: _messages.length,
+            child: GestureDetector(
+              onTap: () => _handleListViewOnTap(),
+              child: ListView.builder(
+                padding: EdgeInsets.all(8.0),
+                reverse: true,
+                itemBuilder: (_, index) => _messages[index],
+                itemCount: _messages.length,
+              ),
             ),
           ),
           Divider(height: 1.0),
           Container(
+            padding: EdgeInsets.symmetric(
+              vertical: 5
+            ),
             decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
+              color: Theme.of(context).highlightColor
             ),
             child: _buildTextComposer(context),
           )
@@ -121,6 +149,8 @@ class ChatMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var maxWidth = MediaQuery.of(context).size.width * .6;
+
     return SizeTransition(
       sizeFactor: CurvedAnimation(
           parent: animationController,
@@ -134,17 +164,53 @@ class ChatMessage extends StatelessWidget {
           children: <Widget>[
             Container(
               margin: const EdgeInsets.only(right: 16.0),
-              child: CircleAvatar(child: Text(_name[0]),),
+              child: CircleAvatar(
+                maxRadius: 24,
+                child: Text(_name[0]),
+              ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(_name, style: Theme.of(context).textTheme.subhead),
-                FadeTransition(
-                  opacity: animationController,
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 5.0),
-                    child: Text(text),
+                Text(_name, style: Theme.of(context).textTheme.caption),
+                Container(
+                  margin: EdgeInsets.only(top: 5),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                        margin: EdgeInsets.only(top: 13),
+                        child: Triangle.isosceles(
+                          edge: Edge.LEFT,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColorLight,
+                            ),
+                          ),
+                        ),
+                      ),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: maxWidth,
+                        ),
+                        child: GestureDetector(
+                          // onTapDown: ,
+                          // onTapUp: ,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 15,
+                            ),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColorLight,
+                                borderRadius: BorderRadius.circular(10.0)
+                            ),
+                            child: Text(text, style: TextStyle(fontSize: 18)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 )
               ],
